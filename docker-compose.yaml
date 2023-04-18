@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  postgres-compose:
+      image: postgres
+      ports:
+        - 5432:5432
+      environment:
+        POSTGRES_USERNAME: postgres
+        POSTGRES_PASSWORD: postgres
+      networks:
+        - app-networks
+
+  pgadmin-compose:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "postgres@postgres.com.br"
+      PGADMIN_DEFAULT_PASSWORD: "postgres"
+    ports:
+      - "16543:80"
+    depends_on:
+      - postgres-compose
+    networks:
+      - app-networks  
+
+  app:
+    depends_on:
+      - postgres-compose
+    build: .
+    restart: unless-stopped
+    env_file: ./.env
+    ports:
+      - "6768:8081"
+    environment:
+      DB_HOST: postgres-compose
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: postgres
+      DB_PORT: 5432
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./:/src
+    networks:
+      - app-networks  
+
+networks: 
+  app-networks:
+    driver: bridge
